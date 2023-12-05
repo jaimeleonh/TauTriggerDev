@@ -10,6 +10,11 @@ def get_L1Taus(events):
     L1Taus = ak.zip(L1taus_dict)
     return L1Taus
 
+def get_L1Jets(events):
+    L1jets_dict = {"pt": events["L1Jet_pt"].compute(), "eta": events["L1Jet_eta"].compute(), "phi": events["L1Jet_phi"].compute()}
+    L1Jets = ak.zip(L1jets_dict)
+    return L1Jets
+
 def get_Taus(events):
     taus_dict = {"pt": events["Tau_pt"].compute(), "eta": events["Tau_eta"].compute(), "phi": events["Tau_phi"].compute(), "deepTauVSjet": events["Tau_deepTauVSjet"].compute()}
     Taus = ak.zip(taus_dict)
@@ -25,10 +30,20 @@ def get_GenTaus(events):
     GenTaus = ak.zip(gentaus_dict)
     return GenTaus
 
+def get_GenJets(events):
+    genjets_dict = {"pt": events["GenJet_pt"].compute(), "eta": events["GenJet_eta"].compute(), "phi": events["GenJet_phi"].compute()}
+    GenJets = ak.zip(genjets_dict)
+    return GenJets
+
 def hGenTau_selection(events):
     # return mask for GenLepton for hadronic GenTau passing minimal selection
     hGenTau_mask = (events['GenLepton_pt'].compute() >= 20) & (np.abs(events['GenLepton_eta'].compute()) <= 2.3) & (events['GenLepton_kind'].compute() == 5)
     return hGenTau_mask
+
+def hGenJet_selection(events):
+    # return mask for GenJet passing minimal selection
+    hGenJet_mask = (events['GenJet_pt'].compute() >= 20)
+    return hGenJet_mask
 
 def matching_L1Taus_obj(L1Taus, Obj, dR_matching_min = 0.5):
     obj_inpair, l1taus_inpair = ak.unzip(ak.cartesian([Obj, L1Taus], nested=True))
@@ -36,6 +51,14 @@ def matching_L1Taus_obj(L1Taus, Obj, dR_matching_min = 0.5):
     mask_obj_l1taus = (dR_obj_l1taus < dR_matching_min)
     
     mask = ak.any(mask_obj_l1taus, axis=-1)
+    return mask
+
+def matching_L1Jets_obj(L1Jets, Obj, dR_matching_min = 0.5):
+    obj_inpair, l1jets_inpair = ak.unzip(ak.cartesian([Obj, L1Jets], nested=True))
+    dR_obj_l1jets = delta_r(obj_inpair, l1jets_inpair)
+    mask_obj_l1jets = (dR_obj_l1jets < dR_matching_min)
+    
+    mask = ak.any(mask_obj_l1jets, axis=-1)
     return mask
 
 def matching_Gentaus(L1Taus, Taus, GenTaus, dR_matching_min = 0.5):
@@ -48,6 +71,18 @@ def matching_Gentaus(L1Taus, Taus, GenTaus, dR_matching_min = 0.5):
     mask_gentaus_taus = (dR_gentaus_taus < dR_matching_min)
 
     matching_mask = ak.any(mask_gentaus_l1taus, axis=-1) & ak.any(mask_gentaus_taus, axis=-1)  # Gentau should match l1Taus and Taus
+    return matching_mask
+
+def matching_Genjets(L1Jets, Jets, GenJets, dR_matching_min = 0.5):
+    genjets_inpair, l1jets_inpair = ak.unzip(ak.cartesian([GenJets, L1Jets], nested=True))
+    dR_genjets_l1jets = delta_r(genjets_inpair, l1jets_inpair)
+    mask_genjets_l1jets = (dR_genjets_l1jets < dR_matching_min) 
+
+    genjets_inpair, jets_inpair = ak.unzip(ak.cartesian([GenJets, Jets], nested=True))
+    dR_genjets_jets = delta_r(genjets_inpair, jets_inpair)
+    mask_genjets_jets = (dR_genjets_jets < dR_matching_min)
+
+    matching_mask = ak.any(mask_genjets_l1jets, axis=-1) & ak.any(mask_genjets_jets, axis=-1)  # Genjet should match l1Jets and Jets
     return matching_mask
 
 def compute_PNet_charge_prob(probTauP, probTauM):
@@ -126,12 +161,14 @@ class Dataset:
 
         # list of all info you need to save
         saved_info_events = ['event',
+                             'L1_DoubleIsoTau26er2p1_Jet55_RmOvlp_dR0p5',
                              'luminosityBlock',
                              'run',
                              'nPFPrimaryVertex',
                              'nPFSecondaryVertex',
                              'L1_DoubleIsoTau34er2p1',
                              'HLT_DoubleMediumDeepTauPFTauHPS35_L2NN_eta2p1',
+                             'HLT_DoubleMediumDeepTauPFTauHPS30_L2NN_eta2p1_PFJet60',
                              'Tau_pt',
                              'Tau_eta',
                              'Tau_phi',
@@ -148,7 +185,10 @@ class Dataset:
                              'Jet_PNet_ptcorr',
                              'Jet_pt',
                              'Jet_eta',
-                             'Jet_phi']
+                             'Jet_phi',
+                             'L1Jet_pt',
+                             'L1Jet_eta',
+                             'L1Jet_phi',]
         
         if len(events)!= 0:
             print('Saving info in tmp file')
@@ -168,6 +208,9 @@ class Dataset:
     def Save_Event_Nden_Eff(self, events, GenLepton, evt_mask, tmp_file):
 
         saved_info_events = ['event',
+                             'L1_DoubleIsoTau26er2p1_Jet55_RmOvlp_dR0p5',
+                             'HLT_DoubleMediumDeepTauPFTauHPS35_L2NN_eta2p1',
+                             'HLT_DoubleMediumDeepTauPFTauHPS30_L2NN_eta2p1_PFJet60',
                              'nPFPrimaryVertex',
                              'nPFSecondaryVertex',
                              'Tau_pt', 
@@ -186,7 +229,13 @@ class Dataset:
                              'Jet_PNet_ptcorr',
                              'Jet_pt',
                              'Jet_eta',
-                             'Jet_phi']
+                             'Jet_phi',
+                             'L1Jet_pt',
+                             'L1Jet_eta',
+                             'L1Jet_phi',
+                             'GenJet_pt',
+                             'GenJet_eta',
+                             'GenJet_phi']
         
         saved_info_GenLepton = ['pt', 
                                 'eta', 

@@ -1,7 +1,7 @@
 import awkward as ak
 import numpy as np
 from HLTClass.dataset import Dataset
-from HLTClass.dataset import get_L1Taus, get_Taus, get_Jets, get_GenTaus, hGenTau_selection, matching_Gentaus, matching_L1Taus_obj, compute_PNet_charge_prob
+from HLTClass.dataset import get_L1Taus, get_Taus, get_Jets, get_GenTaus, get_GenJets, hGenTau_selection, hGenJet_selection, matching_Gentaus, matching_Genjets, matching_L1Taus_obj, compute_PNet_charge_prob
 
 # ------------------------------ functions for DiTau with PNet -----------------------------------------------------------------------------
 def compute_PNet_WP_DiTau(tau_pt, par):
@@ -55,6 +55,11 @@ def evt_sel_DiTau(events, par, n_min=2, is_gen = False):
         GenTaus = get_GenTaus(events)
         GenTaus_DoubleTau  = GenTaus[GenTau_mask]
         matchingGentaus_mask = matching_Gentaus(L1Taus_DoubleTau, Jets_DoubleTau, GenTaus_DoubleTau)
+
+        GenJets = get_GenJets(events)
+        GenTaus_DoubleTau  = GenTaus[GenTau_mask]
+        matchingGentaus_mask = matching_Gentaus(L1Taus_DoubleTau, Jets_DoubleTau, GenTaus_DoubleTau)
+
         # at least n_min GenTau should match L1Tau/Taus
         evt_mask_matching = (ak.sum(matchingGentaus_mask, axis=-1) >= n_min)
     else:

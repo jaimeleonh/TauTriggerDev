@@ -107,21 +107,31 @@ class ProduceRateFiles(Task, HTCondorWorkflow, law.LocalWorkflow):
         event_counter[intput_root_file] = {}
         print(f"For {os.path.basename(intput_root_file)}:")
 
-        HLT_config = ['HLT_DoubleMediumDeepTauPFTauHPS35_L2NN_eta2p1', 'HLT_LooseDeepTauPFTauHPS180_L2NN_eta2p1_v3', 'HLT_DoubleTauOrSingleTau']
+        HLT_config = ['HLT_DoubleMediumDeepTauPFTauHPS35_L2NN_eta2p1', 'HLT_DoubleMediumDeepTauPFTauHPS30_L2NN_eta2p1_PFJet60',
+            'HLT_LooseDeepTauPFTauHPS180_L2NN_eta2p1_v3', 'HLT_DoubleTauOrSingleTau']
         if self.HLT_name not in HLT_config:
             print(f'HLT name {self.HLT_name} not implemented in the code')
             raise
         
         if self.HLT_name == 'HLT_DoubleMediumDeepTauPFTauHPS35_L2NN_eta2p1':
             from HLTClass.DiTauDataset import DiTauDataset
-            
+
             eph_dataset = DiTauDataset(intput_root_file)
             if self.PNetMode:
                 N_den_i, N_num_i = eph_dataset.get_Nnum_Nden_DiTauPNet(self.PNetparam)
             else:
                 N_den_i, N_num_i = eph_dataset.get_Nnum_Nden_HLTDoubleMediumDeepTauPFTauHPS35_L2NN_eta2p1()
 
-        if self.HLT_name == 'HLT_LooseDeepTauPFTauHPS180_L2NN_eta2p1_v3':
+        elif self.HLT_name == 'HLT_DoubleMediumDeepTauPFTauHPS30_L2NN_eta2p1_PFJet60':
+            from HLTClass.DiTauJetDataset import DiTauJetDataset
+            
+            eph_dataset = DiTauJetDataset(intput_root_file)
+            if self.PNetMode:
+                N_den_i, N_num_i = eph_dataset.get_Nnum_Nden_DiTauJetPNet(self.PNetparam)
+            else:
+                N_den_i, N_num_i = eph_dataset.get_Nnum_Nden_HLTDoubleMediumDeepTauPFTauHPS30_L2NN_eta2p1_PFJet60()
+
+        elif self.HLT_name == 'HLT_LooseDeepTauPFTauHPS180_L2NN_eta2p1_v3':
             from HLTClass.SingleTauDataset import SingleTauDataset
             
             eph_dataset = SingleTauDataset(intput_root_file)
@@ -130,7 +140,7 @@ class ProduceRateFiles(Task, HTCondorWorkflow, law.LocalWorkflow):
             else:
                 N_den_i, N_num_i = eph_dataset.get_Nnum_Nden_HLT_LooseDeepTauPFTauHPS180_L2NN_eta2p1_v3()
 
-        if self.HLT_name == 'HLT_DoubleTauOrSingleTau':
+        elif self.HLT_name == 'HLT_DoubleTauOrSingleTau':
             from HLTClass.DoubleORSingleTauDataset import DoubleORSingleTauDataset
             
             eph_dataset = DoubleORSingleTauDataset(intput_root_file)
