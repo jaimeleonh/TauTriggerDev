@@ -55,7 +55,6 @@ def evt_sel_DiTau(events, par, n_min=2, is_gen = False):
         GenTaus = get_GenTaus(events)
         GenTaus_DoubleTau  = GenTaus[GenTau_mask]
         matchingGentaus_mask = matching_Gentaus(L1Taus_DoubleTau, Jets_DoubleTau, GenTaus_DoubleTau)
-
         # at least n_min GenTau should match L1Tau/Taus
         evt_mask_matching = (ak.sum(matchingGentaus_mask, axis=-1) >= n_min)
     else:
