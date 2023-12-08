@@ -7,6 +7,10 @@ config = load_cfg_file()
 HLT_name = config['HLT']['HLTname']
 MCDataFolderNames = list(filter(None, (x.strip() for x in config['DATA']['MCDataFolderNames'].splitlines())))
 
+#print("!!!!!!!!!!!!!!!!!CAUTION!!!!!!!!!!!!!!!!!")
+#MCDataFolderNames = [MCDataFolderNames[0]]
+
+
 PNet_mode = config['OPT']['PNet_mode']
 if PNet_mode == 'false':
     PNetMode = False
@@ -38,7 +42,14 @@ if HLT_name == 'HLT_DoubleMediumDeepTauPFTauHPS35_L2NN_eta2p1':
     else:
         print(f"Total number of GenTaus matching with Tau/L1Tau passing {HLT_name} requirements: {N_num}")
 
-if HLT_name == 'HLT_LooseDeepTauPFTauHPS180_L2NN_eta2p1_v3':
+elif HLT_name == 'HLT_DoubleMediumDeepTauPFTauHPS30_L2NN_eta2p1_PFJet60':
+    print(f"Total number of hadronic GenTaus with with vis. pt <= 20 and eta< 2.1: {N_den}")
+    if PNetMode:
+        print(f"Total number of GenTaus matching with Jet/L1Tau passing DiTauJet path with Pnet param {PNetparam}: {N_num}")
+    else:
+        print(f"Total number of GenTaus matching with Tau/L1Tau passing {HLT_name} requirements: {N_num}")
+
+elif HLT_name == 'HLT_LooseDeepTauPFTauHPS180_L2NN_eta2p1_v3':
     print(f"Total number of hadronic GenTaus with with vis. pt <= 20 and eta< 2.1: {N_den}")
     if PNetMode:
         print(f"Total number of GenTaus matching with Jet/L1Tau passing SingleTau path with Pnet param {PNetparam}: {N_num}")

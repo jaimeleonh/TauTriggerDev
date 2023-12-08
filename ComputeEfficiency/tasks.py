@@ -46,8 +46,7 @@ class SaveEventsDenEfficiency(Task, HTCondorWorkflow, law.LocalWorkflow):
 
         # Produce tmp files
         FileNameList = files_from_path(MCFolderName)
-        print("!!!!!!!!!!!!!!!!!!CAUTION!!!!!!!!!!!!!!!!!!!!!")
-        for FileName in FileNameList[:2]:
+        for FileName in FileNameList:
             print(f"Producing tmp file for {os.path.basename(FileName)}:")
             output_tmp_file = os.path.join(output_tmp_folder, os.path.basename(FileName))
 

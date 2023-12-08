@@ -16,7 +16,7 @@ else:
 
 
 # only one file otherwise it's too long
-FileNameList_eff = f"/afs/cern.ch/work/p/pdebryas/PNetAtHLT/data/EfficiencyDen/{HLT_name}/ZprimeToTauTau_M-4000.root" 
+FileNameList_eff = f"/eos/user/j/jleonhol/www/PNetAtHLT/data/EfficiencyDen/{HLT_name}/ZprimeToTauTau_M-4000.root"
 #FileNameList_eff = files_from_path(f"/afs/cern.ch/work/p/pdebryas/PNetAtHLT/data/EfficiencyDen/{HLT_name}/")
 
 if HLT_name == 'HLT_DoubleMediumDeepTauPFTauHPS35_L2NN_eta2p1':
@@ -30,7 +30,18 @@ if HLT_name == 'HLT_DoubleMediumDeepTauPFTauHPS35_L2NN_eta2p1':
         print(f'Quick EffAlgo computation for {HLT_name}:')
         N_den, N_num = dataset_eff.ComputeEffAlgo_HLTDoubleMediumDeepTauPFTauHPS35_L2NN_eta2p1()
 
-if HLT_name == 'HLT_LooseDeepTauPFTauHPS180_L2NN_eta2p1_v3':
+elif HLT_name == 'HLT_DoubleMediumDeepTauPFTauHPS30_L2NN_eta2p1_PFJet60':
+    from HLTClass.DiTauJetDataset import DiTauJetDataset
+    dataset_eff = DiTauJetDataset(FileNameList_eff)
+
+    if PNetMode:
+        print(f'Quick EffAlgo computation for DiTauJet path with PNet param {PNetparam}:')
+        N_den, N_num = dataset_eff.ComputeEffAlgo_DiTauPNet(PNetparam)
+    else:
+        print(f'Quick EffAlgo computation for {HLT_name}:')
+        N_den, N_num = dataset_eff.ComputeEffAlgo_HLTDoubleMediumDeepTauPFTauHPS30_L2NN_eta2p1_PFJet60()
+
+elif HLT_name == 'HLT_LooseDeepTauPFTauHPS180_L2NN_eta2p1_v3':
     from HLTClass.SingleTauDataset import SingleTauDataset
     dataset_eff = SingleTauDataset(FileNameList_eff)
 

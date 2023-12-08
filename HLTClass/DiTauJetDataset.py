@@ -73,11 +73,15 @@ def apply_ovrm(builder, tau_eta, tau_phi, jet_pt, jet_eta, jet_phi, jet_pt_th):
         builder.end_list()
     return builder
 
-def Jet_selection_DiTauJet_Jets(events, DiTauJet_mask) -> ak.Array:
+def Jet_selection_DiTauJet_Jets(events, DiTauJet_mask, usejets=False) -> ak.Array:
     # return mask for Jet passing selection for DiTauJet path
 
-    tau_eta = ak.drop_none(ak.mask(events['Jet_eta'].compute(), DiTauJet_mask))
-    tau_phi = ak.drop_none(ak.mask(events['Jet_phi'].compute(), DiTauJet_mask))
+    if usejets:
+        tau_eta = ak.drop_none(ak.mask(events['Jet_eta'].compute(), DiTauJet_mask))
+        tau_phi = ak.drop_none(ak.mask(events['Jet_phi'].compute(), DiTauJet_mask))
+    else:
+        tau_eta = ak.drop_none(ak.mask(events['Tau_eta'].compute(), DiTauJet_mask))
+        tau_phi = ak.drop_none(ak.mask(events['Tau_phi'].compute(), DiTauJet_mask))
 
     jet_pt = events['Jet_pt'].compute()
     jet_eta = events['Jet_eta'].compute()
@@ -93,7 +97,7 @@ def evt_sel_DiTauJet(events, par, n_min=2, is_gen = False):
     L1Jet_Jet55_mask = L1Jet_Jet55_selection(events, L1Tau_IsoTau26er2p1_mask)
     # L1Tau_Tau70er2p1L2NN_mask = L1Tau_Tau70er2p1_selection(events) & L1Tau_L2NN_selection_DiTau(events)
     DiTauJet_mask = Jet_selection_DiTauJet(events, par, apply_PNET_WP = True)
-    DiTauJet_Jet_mask = Jet_selection_DiTauJet_Jets(events, DiTauJet_mask)
+    DiTauJet_Jet_mask = Jet_selection_DiTauJet_Jets(events, DiTauJet_mask, usejets=True)
     # at least n_min L1tau/ recoJet and 1 L1jet / recoJet should pass
     # applying also the full L1 seed selection to account for the Overlap Removal
     DiTauJet_evt_mask = (
@@ -168,11 +172,11 @@ def Tau_selection_DiTauJet(events, apply_DeepTau_WP = True):
         Tau_mask = Tau_mask & (events['Tau_deepTauVSjet'].compute() >= compute_DeepTau_WP_DiTau(tau_pt))
     return Tau_mask
 
-def Jet_selection_DiTauJet(events):
-    # return mask for Jet passing selection for DoubleMediumDeepTauPFTauHPS30_L2NN_eta2p1_PFJet60
-    jet_pt = events['Jet_pt'].compute()
-    Jet_mask = (jet_pt >= 60)
-    return Jet_mask
+# def Jet_selection_DiTauJet(events):
+    # # return mask for Jet passing selection for DoubleMediumDeepTauPFTauHPS30_L2NN_eta2p1_PFJet60
+    # jet_pt = events['Jet_pt'].compute()
+    # Jet_mask = (jet_pt >= 60)
+    # return Jet_mask
 
 def evt_sel_DoubleMediumDeepTauPFTauHPS30_L2NN_eta2p1_PFJet60(events, n_min = 2, is_gen = False):
     # Selection of event passing condition of DoubleMediumDeepTauPFTauHPS30_L2NN_eta2p1_PFJet60 + mask of objects passing those conditions
@@ -182,7 +186,7 @@ def evt_sel_DoubleMediumDeepTauPFTauHPS30_L2NN_eta2p1_PFJet60(events, n_min = 2,
     L1Jet_Jet55_mask = L1Jet_Jet55_selection(events, L1Tau_IsoTau26er2p1_mask)
     # L1Tau_Tau70er2p1L2NN_mask = L1Tau_Tau70er2p1_selection(events) & L1Tau_L2NN_selection_DiTau(events)
     DiTauJet_mask = Tau_selection_DiTauJet(events)
-    DiTauJet_Jet_mask = Jet_selection_DiTauJet_Jets(events, DiTauJet_mask)
+    DiTauJet_Jet_mask = Jet_selection_DiTauJet_Jets(events, DiTauJet_mask, usejets=False)
     # at least n_min L1tau/ recoJet and 1 L1jet / recoJet should pass
     # applying also the full L1 seed selection to account for the Overlap Removal
     DiTauJet_evt_mask = (
@@ -397,21 +401,17 @@ class DiTauJetDataset(Dataset):
         GenTau_mask = hGenTau_selection(events)
         GenTaus = get_GenTaus(events)
         Tau_Den = GenTaus[GenTau_mask]
-
-        mask_den_selection = ak.num(Tau_Den['pt']) >=2
-        Tau_Den = Tau_Den[mask_den_selection]
-        events = events[mask_den_selection]
-
-        print(f"Number of GenTaus passing denominator selection: {len(ak.flatten(Tau_Den))}")
-
         GenJet_mask = hGenJet_selection(events)
         GenJets = get_GenJets(events)
         Jet_Den = GenJets[GenJet_mask]
 
-        mask_den_selection = ak.num(Jet_Den['pt']) >=1
+        mask_den_selection = (ak.num(Tau_Den['pt']) >= 2) & (ak.num(Jet_Den['pt']) >=1)
+        Tau_Den = Tau_Den[mask_den_selection]
         Jet_Den = Jet_Den[mask_den_selection]
+
         events = events[mask_den_selection]
 
+        print(f"Number of GenTaus passing denominator selection: {len(ak.flatten(Tau_Den))}")
         print(f"Number of GenJets passing denominator selection: {len(ak.flatten(Jet_Den))}")
 
         DiTauJet_evt_mask, matchingGentaus_mask, matchingGenjets_mask = evt_sel_DoubleMediumDeepTauPFTauHPS30_L2NN_eta2p1_PFJet60(events, n_min = 1, is_gen = True)
@@ -483,7 +483,7 @@ class DiTauJetDataset(Dataset):
         L1Tau_IsoTau26er2p1L2NN_mask = L1Tau_IsoTau26er2p1_mask & L1Tau_L2NN_selection_DiTauJet(events)
         L1Jet_Jet55_mask = L1Jet_Jet55_selection(events, L1Tau_IsoTau26er2p1_mask)
         DiTauJet_mask = Jet_selection_DiTauJet(events, par, apply_PNET_WP = False)
-        DiTauJet_Jet_mask = Jet_selection_DiTauJet_Jets(events, DiTauJet_mask)
+        DiTauJet_Jet_mask = Jet_selection_DiTauJet_Jets(events, DiTauJet_mask, usejets=True)
         GenTau_mask = hGenTau_selection(events)
         GenJet_mask = hGenJet_selection(events)
         # at least n_min L1tau/ recoJet and 1 L1jet/jet should pass + L1 trigger
@@ -497,7 +497,7 @@ class DiTauJetDataset(Dataset):
         Jets_DoubleTauJet = Jets[DiTauJet_mask]
         Jets_DoubleTauJet_Jet = Jets[DiTauJet_Jet_mask]
         GenTaus_DoubleTauJet = GenTaus[GenTau_mask]
-        GenJets_DoubleTauKet = GenJets[GenJet_mask]
+        GenJets_DoubleTauJet = GenJets[GenJet_mask]
 
         matchingGentaus_mask = matching_Gentaus(L1Taus_DoubleTauJet, Jets_DoubleTauJet, GenTaus_DoubleTauJet)
         # at least n_min GenTau should match L1Tau/Taus
@@ -549,8 +549,8 @@ class DiTauJetDataset(Dataset):
         L1Tau_IsoTau26er2p1_mask = L1Tau_IsoTau26er2p1_selection(events)
         L1Tau_IsoTau26er2p1L2NN_mask = L1Tau_IsoTau26er2p1_mask & L1Tau_L2NN_selection_DiTauJet(events)
         L1Jet_Jet55_mask = L1Jet_Jet55_selection(events, L1Tau_IsoTau26er2p1_mask)
-        DiTauJet_mask = Jet_selection_DiTauJet(events)
-        DiTauJet_Jet_mask = Jet_selection_DiTauJet_Jets(events, DiTauJet_mask)
+        DiTauJet_mask = Tau_selection_DiTauJet(events, apply_DeepTau_WP = False)
+        DiTauJet_Jet_mask = Jet_selection_DiTauJet_Jets(events, DiTauJet_mask, usejets=False)
         GenTau_mask = hGenTau_selection(events)
         GenJet_mask = hGenJet_selection(events)
         # at least n_min L1tau/ recoJet and 1 L1jet/jet should pass + L1 trigger
