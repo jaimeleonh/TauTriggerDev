@@ -22,6 +22,7 @@ if __name__ == '__main__':
         except:
             plt.scatter(xaxis, yaxis, marker="o")
         for (x, y, label) in zip(df[xaxis], df[yaxis], parameters):
+            continue
             plt.annotate(label, # this is the text
                  (x, y), # this is the point to label
                  textcoords="offset points", # how to position the text
@@ -54,5 +55,6 @@ if __name__ == '__main__':
 
 
     # plot("rate", "efficiency", df["params"], "Rate (Hz)", "Efficiency", 17.80, 18.20, 0.84, 0.86, "plot.pdf", data=df)
+    #plot("rate", "efficiency", df["params"], "Rate (Hz)", "Efficiency", 17.50, 18.20, 0.84, 0.86, "plot.pdf", data=df)
     plot("rate", "efficiency", df["params"], "Rate (Hz)", "Efficiency", 0., 1., 0., 1., "plot.pdf", data=df)
     #plot([15], [0.95], [[1,2]], "Rate (Hz)", "Efficiency", 10, 20, 0.9, 1., "plot.pdf")

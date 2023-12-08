@@ -384,4 +384,4 @@ dependencies:
   - zstd=1.5.2=h3eb15da_6
   - pip:
     - dask-awkward==2023.6.2
-prefix: /afs/cern.ch/work/p/pdebryas/miniconda3/envs/PnetEnv
+prefix: /afs/cern.ch/work/j/jleonhol/.miniconda3/envs/PnetEnv
