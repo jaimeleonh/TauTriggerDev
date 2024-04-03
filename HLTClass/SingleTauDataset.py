@@ -26,7 +26,7 @@ def compute_PNet_WP_SingleTau(tau_pt, par):
 def Jet_selection_SingleTau(events, par, apply_PNET_WP = True):
     # return mask for Jet passing selection for SingleTau path
     Jet_pt_corr = events['Jet_pt'].compute()*events['Jet_PNet_ptcorr'].compute()
-    Jets_mask = (events['Jet_pt'].compute() >= 30) & (np.abs(events['Jet_eta'].compute()) <= 2.3) & (Jet_pt_corr >= 30)
+    Jets_mask = (events['Jet_pt'].compute() >= 26) & (np.abs(events['Jet_eta'].compute()) <= 2.3) & (Jet_pt_corr >= 26)
     if apply_PNET_WP:
         probTauP = events['Jet_PNet_probtauhp'].compute()
         probTauM = events['Jet_PNet_probtauhm'].compute()

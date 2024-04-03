@@ -48,6 +48,8 @@ class SaveEventsDenRate(Task, HTCondorWorkflow, law.LocalWorkflow):
             # this tmp folder fuck up the code
             if FileName == os.path.join(self.EphemeralFolder, 'EphemeralHLTPhysics1_Run2023C', 'nano.tmp'):
                 continue
+            if not FileName.endswith(".root"):
+                continue
             print(f"Producing tmp file for {os.path.basename(FileName)}:")
             output_tmp_file = os.path.join(output_tmp_folder, os.path.basename(FileName))
             eph_dataset = Dataset(FileName)

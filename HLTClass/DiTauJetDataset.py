@@ -10,13 +10,13 @@ from HLTClass.dataset import (
 )
 
 # ------------------------------ functions for DiTau with PNet -----------------------------------------------------------------------------
-def compute_PNet_WP_DiTauJet(tau_pt, par):
+def compute_PNet_WP_DiTauJet(tau_pt, par, pt=30):
     # return PNet WP for DiTauJet (to optimize)
     t1 = par[0]
     t2 = par[1]
     t3 = 0.001
     t4 = 0
-    x1 = 30
+    x1 = pt
     x2 = 100
     x3 = 500
     x4 = 1000
@@ -29,14 +29,14 @@ def compute_PNet_WP_DiTauJet(tau_pt, par):
     PNet_WP = ak.where(((tau_pt >= ones*x3) & (tau_pt < ones*x4))== False, PNet_WP, (t4 - t3) / (x4 - x3) * (tau_pt - ones*x3) + ones*t3)
     return PNet_WP
 
-def Jet_selection_DiTauJet(events, par, apply_PNET_WP = True):
+def Jet_selection_DiTauJet(events, par, apply_PNET_WP = True, pt=26):
     # return mask for Jet (Taus) passing selection for DiTauJet path
     Jet_pt_corr = events['Jet_pt'].compute()*events['Jet_PNet_ptcorr'].compute()
-    Jets_mask = (events['Jet_pt'].compute() >= 30) & (np.abs(events['Jet_eta'].compute()) <= 2.3) & (Jet_pt_corr >= 30)
+    Jets_mask = (events['Jet_pt'].compute() >= pt) & (np.abs(events['Jet_eta'].compute()) <= 2.3) & (Jet_pt_corr >= pt)
     if apply_PNET_WP:
         probTauP = events['Jet_PNet_probtauhp'].compute()
         probTauM = events['Jet_PNet_probtauhm'].compute()
-        Jets_mask = Jets_mask & ((probTauP + probTauM) >= compute_PNet_WP_DiTauJet(Jet_pt_corr, par)) & (compute_PNet_charge_prob(probTauP, probTauM) >= 0)
+        Jets_mask = Jets_mask & ((probTauP + probTauM) >= compute_PNet_WP_DiTauJet(Jet_pt_corr, par, pt)) & (compute_PNet_charge_prob(probTauP, probTauM) >= 0) & (Jet_pt_corr >= pt)
     return Jets_mask
 
 @nb.jit(nopython=True)
@@ -89,14 +89,15 @@ def Jet_selection_DiTauJet_Jets(events, DiTauJet_mask, usejets=False) -> ak.Arra
 
     return apply_ovrm(ak.ArrayBuilder(), tau_eta, tau_phi, jet_pt, jet_eta, jet_phi, 60.).snapshot()
 
-def evt_sel_DiTauJet(events, par, n_min=2, is_gen = False):
+
+def evt_sel_DiTauJet(events, par, n_min=2, is_gen = False, pt=26):
     # Selection of event passing condition of DiTauJet with PNet HLT path + mask of objects passing those conditions
 
     L1Tau_IsoTau26er2p1_mask = L1Tau_IsoTau26er2p1_selection(events)
     L1Tau_IsoTau26er2p1L2NN_mask = L1Tau_IsoTau26er2p1_mask & L1Tau_L2NN_selection_DiTauJet(events)
     L1Jet_Jet55_mask = L1Jet_Jet55_selection(events, L1Tau_IsoTau26er2p1_mask)
     # L1Tau_Tau70er2p1L2NN_mask = L1Tau_Tau70er2p1_selection(events) & L1Tau_L2NN_selection_DiTau(events)
-    DiTauJet_mask = Jet_selection_DiTauJet(events, par, apply_PNET_WP = True)
+    DiTauJet_mask = Jet_selection_DiTauJet(events, par, apply_PNET_WP = True, pt=pt)
     DiTauJet_Jet_mask = Jet_selection_DiTauJet_Jets(events, DiTauJet_mask, usejets=True)
     # at least n_min L1tau/ recoJet and 1 L1jet / recoJet should pass
     # applying also the full L1 seed selection to account for the Overlap Removal
@@ -348,7 +349,8 @@ class DiTauJetDataset(Dataset):
         events = self.get_events()
         print(f"Number of events in the file: {len(events)}")
         GenLepton = self.get_GenLepton(events)
-        evt_mask = Denominator_Selection_DiTauJet(GenLepton) & Denominator_Selection_DiTauJet_Jet(events)
+        evt_mask = Denominator_Selection_DiTauJet(GenLepton)
+        #evt_mask = Denominator_Selection_DiTauJet(GenLepton) & Denominator_Selection_DiTauJet_Jet(events)
         print(f"Number of events with at least 2 hadronic Tau and 1 jet: {ak.sum(evt_mask)}")
         self.Save_Event_Nden_Eff(events, GenLepton, evt_mask, tmp_file)
         return
@@ -425,7 +427,7 @@ class DiTauJetDataset(Dataset):
         self.save_info(events, events_Num, Tau_Den, Tau_Num, Jet_Den, Jet_Num, out_file)
         return
 
-    def produceRoot_DiTauPNet(self, out_file, par):
+    def produceRoot_DiTauJetPNet(self, out_file, par):
         #load all events that pass denominator Selection
         events = self.get_events()
 
@@ -456,7 +458,7 @@ class DiTauJetDataset(Dataset):
         print(f"Number of GenTaus passing numerator selection: {len(ak.flatten(Tau_Num))}")
         events_Num = events[DiTauJet_evt_mask]
 
-        Jet_Num = (Jet_den[matchingGenjets_mask])[DiTauJet_evt_mask]
+        Jet_Num = (Jet_Den[matchingGenjets_mask])[DiTauJet_evt_mask]
         print(f"Number of GenJets passing numerator selection: {len(ak.flatten(Jet_Num))}")
         events_Num = events[DiTauJet_evt_mask]
 

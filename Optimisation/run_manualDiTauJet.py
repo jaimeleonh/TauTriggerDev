@@ -53,10 +53,9 @@ if __name__ == '__main__':
     effs = []
     rates = []
     params = []
-    
-    
+
     for i in range(int(round((max_param - min_param) / step)) + 1):
-        for j in range(int(round((max_param - min_param) / step)) + 1):
+        for j in range(i + 1):
             param = (min_param + i * step, min_param + j * step)
             # print(param)
             params.append(param)

@@ -73,6 +73,13 @@ def matching_Gentaus(L1Taus, Taus, GenTaus, dR_matching_min = 0.5):
     matching_mask = ak.any(mask_gentaus_l1taus, axis=-1) & ak.any(mask_gentaus_taus, axis=-1)  # Gentau should match l1Taus and Taus
     return matching_mask
 
+def matching_GenObj_l1only(L1Objs, GenObjs, dR_matching_min = 0.5):
+    genobjs_inpair, l1objs_inpair = ak.unzip(ak.cartesian([GenObjs, L1Objs], nested=True))
+    dR_genobjs_l1objs = delta_r(genobjs_inpair, l1objs_inpair)
+    mask_genobjs_l1objs = (dR_genobjs_l1objs < dR_matching_min)
+
+    return ak.any(mask_genobjs_l1objs, axis=-1) # GenObj should match l1Obj
+
 def matching_Genjets(L1Jets, Jets, GenJets, dR_matching_min = 0.5):
     genjets_inpair, l1jets_inpair = ak.unzip(ak.cartesian([GenJets, L1Jets], nested=True))
     dR_genjets_l1jets = delta_r(genjets_inpair, l1jets_inpair)
@@ -109,9 +116,11 @@ class Dataset:
         if iterable(self.fileName):
             tree_path = []
             for file in self.fileName:
-                tree_path.append(file + ":" + treeName)
+                if file.endswith(".root"):
+                    tree_path.append(file + ":" + treeName)
         else:
-            tree_path = self.fileName + ":" + treeName
+            if self.fileName.endswith(".root"):
+                tree_path = self.fileName + ":" + treeName
         return tree_path
 
     def get_events(self):
