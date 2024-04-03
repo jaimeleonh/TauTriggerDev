@@ -73,6 +73,13 @@ def matching_Gentaus(L1Taus, Taus, GenTaus, dR_matching_min = 0.5):
     matching_mask = ak.any(mask_gentaus_l1taus, axis=-1) & ak.any(mask_gentaus_taus, axis=-1)  # Gentau should match l1Taus and Taus
     return matching_mask
 
+def matching_GenObj_l1only(L1Objs, GenObjs, dR_matching_min = 0.5):
+    genobjs_inpair, l1objs_inpair = ak.unzip(ak.cartesian([GenObjs, L1Objs], nested=True))
+    dR_genobjs_l1objs = delta_r(genobjs_inpair, l1objs_inpair)
+    mask_genobjs_l1objs = (dR_genobjs_l1objs < dR_matching_min)
+
+    return ak.any(mask_genobjs_l1objs, axis=-1) # GenObj should match l1Obj
+
 def matching_Genjets(L1Jets, Jets, GenJets, dR_matching_min = 0.5):
     genjets_inpair, l1jets_inpair = ak.unzip(ak.cartesian([GenJets, L1Jets], nested=True))
     dR_genjets_l1jets = delta_r(genjets_inpair, l1jets_inpair)
@@ -109,9 +116,11 @@ class Dataset:
         if iterable(self.fileName):
             tree_path = []
             for file in self.fileName:
-                tree_path.append(file + ":" + treeName)
+                if file.endswith(".root"):
+                    tree_path.append(file + ":" + treeName)
         else:
-            tree_path = self.fileName + ":" + treeName
+            if self.fileName.endswith(".root"):
+                tree_path = self.fileName + ":" + treeName
         return tree_path
 
     def get_events(self):
@@ -147,13 +156,24 @@ class Dataset:
         ''' 
         Save only needed informations (for numerator cuts) of events passing denominator cuts 
         '''
+
+        conditions = []
+        for r, ls in zip(run, lumiSections_range):
+            condition = f"((events['run'] == {r}) & "
+            ls_conditions = []
+            ls = ls.split(", ")
+            for ils in range(0, len(ls), 2):
+                ls_conditions.append(f"((events['luminosityBlock'] >= {ls[ils]}) & (events['luminosityBlock'] <= {ls[ils + 1]}))")
+            condition += f"({' | '.join(ls_conditions)}))"
+            conditions.append(condition)
+
         events = self.get_events()
         N_events = len(events)
         print(f"Number of events: {N_events}")
-        events = events[events['run'] == run]
-        print(f"Number of events belonging to run {run}: {len(events)}")
-        events = events[(events["luminosityBlock"] >= lumiSections_range[0]) & (events["luminosityBlock"] <= lumiSections_range[1])]
-        print(f"Number of event in LumiSections range {lumiSections_range}: {len(events)}")
+
+        events = eval(f"events[{' | '.join(conditions)}]")
+        print(f"Number of selected events : {len(events)}")
+
         Nevents_L1 = len(events[events['L1_DoubleIsoTau34er2p1'].compute()])
         print(f"   - events passing L1_DoubleIsoTau34er2p1 flag: {Nevents_L1}")
         Nevents_HLT = len(events[events['HLT_DoubleMediumDeepTauPFTauHPS35_L2NN_eta2p1'].compute()])

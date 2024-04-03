@@ -6,10 +6,23 @@ from plot_figures.params import WP_params_SingleTau, WP_params_DiTau, rate_deepT
 
 #param
 output_fig = f'{os.getenv("RUN_PATH")}/plot_figures/figures/'
-data_eff_path =f'{os.getenv("RUN_PATH")}/ComputeEfficiency/result/'
+data_eff_path =f'/eos/home-j/jleonhol/www/PNetAtHLT/2024_v1/PNetAtHLT/ComputeEfficiency/result/'
 
 #sample_list = ['ZprimeToTauTau_M-4000', 'VBFHToTauTau_M125', 'GluGluHToTauTau_M-125',  'VBFHHto2B2Tau_CV-1_C2V-1_C3-1']
-sample_list = ['ZprimeToTauTau_M-4000', 'VBFHToTauTau_M125',  'VBFHHto2B2Tau_CV-1_C2V-1_C3-1', 'GluGlutoHHto2B2Tau_kl-1p00_kt-1p00_c2-0p00', 'GluGluHToTauTau_M-125', 'GluGluHToTauTau_M-125_ext1']
+# sample_list = ['ZprimeToTauTau_M-4000', 'VBFHToTauTau_M125',  'VBFHHto2B2Tau_CV-1_C2V-1_C3-1', 'GluGlutoHHto2B2Tau_kl-1p00_kt-1p00_c2-0p00', 'GluGluHToTauTau_M-125', 'GluGluHToTauTau_M-125_ext1']
+# sample_list = ['VBFHToTauTau_M125',  'VBFHHto2B2Tau_CV-1_C2V-1_C3-1', 'GluGlutoHHto2B2Tau_kl-1p00_kt-1p00_c2-0p00', 'GluGluHToTauTau_M-125']
+# sample_list = ['GluGluHToTauTau_M-125']
+sample_list = [
+    "GluGluHToTauTau_M-125",
+    "VBFHToTauTau_M125",
+    "GluGlutoHHto2B2Tau_kl-0p00_kt-1p00_c2-0p00",
+    "GluGlutoHHto2B2Tau_kl-0p00_kt-1p00_c2-1p00",
+    "GluGlutoHHto2B2Tau_kl-1p00_kt-1p00_c2-0p00",
+    "GluGlutoHHto2B2Tau_kl-1p00_kt-1p00_c2-0p35",
+    "GluGlutoHHto2B2Tau_kl-1p00_kt-1p00_c2-3p00",
+    "GluGlutoHHto2B2Tau_kl-1p00_kt-1p00_c2-m2p00",
+    "GluGlutoHHto2B2Tau_kl-2p45_kt-1p00_c2-0p00",
+]
 
 
 #-------------------------------------------------------------------------------------------------------------------------------------------------
@@ -30,7 +43,7 @@ for WP in WP_params_SingleTau.keys():
     rate = round(WP_params_SingleTau[WP]['rate'],0)
     list_filename = []
     for sample_av in sample_list:
-        filename = f'{data_eff_path_SingleTau}PNetTresh_{WP_params_SingleTau[WP]["t1"]}_{WP_params_SingleTau[WP]["t2"]}_130/{sample_av}.root'
+        filename = f'{data_eff_path_SingleTau}PNetTresh_{WP_params_SingleTau[WP]["t1"]}_{WP_params_SingleTau[WP]["t2"]}_0.001/{sample_av}.root'
         list_filename.append(filename)
     fileName_dict[f'{WP}_{str(rate)}Hz'] = list_filename
 
@@ -73,9 +86,10 @@ for WP in WP_params_DiTau.keys():
     rate = round(WP_params_DiTau[WP]['rate'],0)
     list_filename = []
     for sample_av in sample_list:
-        filename = f'{data_eff_path_DiTau}PNetTresh_{WP_params_DiTau[WP]["t1"]}_{WP_params_DiTau[WP]["t2"]}_30/{sample_av}.root'
+        filename = f'{data_eff_path_DiTau}PNetTresh_{WP_params_DiTau[WP]["t1"]}_{WP_params_DiTau[WP]["t2"]}_0.001/{sample_av}.root'
         list_filename.append(filename)
-    fileName_dict[f'{WP}_{str(rate)}Hz'] = list_filename
+    # fileName_dict[f'{WP}_{str(rate)}Hz'] = list_filename
+    fileName_dict[f'{WP}'] = list_filename
 
 
 rate_deepTau = round(rate_deepTau_DiTau,0)
@@ -83,7 +97,8 @@ list_filename = []
 for sample_av in sample_list:
     filename = f"{data_eff_path_DiTau}{HLTnameDiTau}/{sample_av}.root"
     list_filename.append(filename)
-fileName_dict[f'DeepTau_{str(rate_deepTau)}Hz'] = list_filename
+# fileName_dict[f'DeepTau_{str(rate_deepTau)}Hz'] = list_filename
+fileName_dict[f'DeepTau'] = list_filename
 
 for var in var_list:
     savefig_path = output_fig + f'DoubleTau/DoubleTau_{var}.pdf'

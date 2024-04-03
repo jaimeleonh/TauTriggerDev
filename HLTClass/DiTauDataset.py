@@ -26,11 +26,11 @@ def compute_PNet_WP_DiTau(tau_pt, par):
 def Jet_selection_DiTau(events, par, apply_PNET_WP = True):
     # return mask for Jet passing selection for DiTau path
     Jet_pt_corr = events['Jet_pt'].compute()*events['Jet_PNet_ptcorr'].compute()
-    Jets_mask = (events['Jet_pt'].compute() >= 30) & (np.abs(events['Jet_eta'].compute()) <= 2.3) & (Jet_pt_corr >= 30)
+    Jets_mask = (events['Jet_pt'].compute() >= 26) & (np.abs(events['Jet_eta'].compute()) <= 2.3) & (Jet_pt_corr >= 26)
     if apply_PNET_WP:
         probTauP = events['Jet_PNet_probtauhp'].compute()
         probTauM = events['Jet_PNet_probtauhm'].compute()
-        Jets_mask = Jets_mask & ((probTauP + probTauM) >= compute_PNet_WP_DiTau(Jet_pt_corr, par)) & (compute_PNet_charge_prob(probTauP, probTauM) >= 0)
+        Jets_mask = Jets_mask & ((probTauP + probTauM) >= compute_PNet_WP_DiTau(Jet_pt_corr, par)) & (compute_PNet_charge_prob(probTauP, probTauM) >= 0) & (Jet_pt_corr >= 30)
     return Jets_mask
 
 def evt_sel_DiTau(events, par, n_min=2, is_gen = False):
@@ -88,9 +88,9 @@ def compute_DeepTau_WP_DiTau(tau_pt):
 def Tau_selection_DiTau(events, apply_DeepTau_WP = True):
     # return mask for Tau passing selection for DoubleMediumDeepTauPFTauHPS35_L2NN_eta2p1
     tau_pt = events['Tau_pt'].compute()
-    Tau_mask = (tau_pt >= 35) & (np.abs(events['Tau_eta'].compute()) <= 2.1)
+    Tau_mask = (tau_pt >= 26) & (np.abs(events['Tau_eta'].compute()) <= 2.1)
     if apply_DeepTau_WP:
-        Tau_mask = Tau_mask & (events['Tau_deepTauVSjet'].compute() >= compute_DeepTau_WP_DiTau(tau_pt))
+        Tau_mask = Tau_mask & (events['Tau_deepTauVSjet'].compute() >= compute_DeepTau_WP_DiTau(tau_pt)) & (tau_pt >= 35)
     return Tau_mask
 
 def evt_sel_DoubleMediumDeepTauPFTauHPS35_L2NN_eta2p1(events, n_min = 2, is_gen = False):

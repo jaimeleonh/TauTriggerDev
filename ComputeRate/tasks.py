@@ -11,14 +11,20 @@ class SaveEventsDenRate(Task, HTCondorWorkflow, law.LocalWorkflow):
     Produce root file where Events passing denominator selection (run and lumiSection) are saved 
     '''
     config = load_cfg_file()
-    RefRun = int(config['RUNINFO']['ref_run'])
-    LumiSectionsRange = [int(config['RUNINFO']['LumiSectionsRange_low']), int(config['RUNINFO']['LumiSectionsRange_up'])]
+    # RefRun = int(config['RUNINFO']['ref_run'])
+    RefRun = list(filter(None, (x.strip() for x in config['RUNINFO']['ref_run'].splitlines())))
+    # LumiSectionsRange = [int(config['RUNINFO']['LumiSectionsRange_low']), int(config['RUNINFO']['LumiSectionsRange_up'])]
+    LumiSectionsRange =  list(filter(None, (x.strip() for x in config['RUNINFO']['LumiSectionsRange'].splitlines())))
     number_of_ephemeral_folder = int(config['DATA']['number_of_ephemeral_folder'])
     runArea = config['RUNINFO']['Area']
     EphemeralFolder = config['DATA']['SamplesPath']
-    output_path = os.path.join(config['DATA']['RateDenPath'], f'Run_{RefRun}')
     tmp_folder = config['DATA']['tmpPath']
-    
+
+    def __init__(self, *args, **kwargs):
+        super(SaveEventsDenRate, self).__init__(*args, **kwargs)
+        tag = f'Run_{self.RefRun[0]}' if len(self.RefRun) == 1 else f'Run_{"_".join(self.RefRun)}'
+        self.output_path = os.path.join(self.config['DATA']['RateDenPath'], tag)
+
     def create_branch_map(self):
         os.makedirs(self.output_path, exist_ok=True)
         branches = {}
@@ -48,6 +54,8 @@ class SaveEventsDenRate(Task, HTCondorWorkflow, law.LocalWorkflow):
             # this tmp folder fuck up the code
             if FileName == os.path.join(self.EphemeralFolder, 'EphemeralHLTPhysics1_Run2023C', 'nano.tmp'):
                 continue
+            if not FileName.endswith(".root"):
+                continue
             print(f"Producing tmp file for {os.path.basename(FileName)}:")
             output_tmp_file = os.path.join(output_tmp_folder, os.path.basename(FileName))
             eph_dataset = Dataset(FileName)
@@ -64,7 +72,8 @@ class ProduceRateFiles(Task, HTCondorWorkflow, law.LocalWorkflow):
     Produce json files where number of events which pass denominator and numerator criteria are saved from each ephemerals files
     '''
     config = load_cfg_file()
-    RefRun = int(config['RUNINFO']['ref_run'])
+    # RefRun = int(config['RUNINFO']['ref_run'])
+    RefRun = config['RUNINFO']['ref_run']
     number_of_ephemeral_folder = int(config['DATA']['number_of_ephemeral_folder'])
     HLT_name = config['HLT']['HLTname']
     runArea = config['RUNINFO']['Area']

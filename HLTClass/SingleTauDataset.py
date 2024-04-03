@@ -26,7 +26,7 @@ def compute_PNet_WP_SingleTau(tau_pt, par):
 def Jet_selection_SingleTau(events, par, apply_PNET_WP = True):
     # return mask for Jet passing selection for SingleTau path
     Jet_pt_corr = events['Jet_pt'].compute()*events['Jet_PNet_ptcorr'].compute()
-    Jets_mask = (events['Jet_pt'].compute() >= 30) & (np.abs(events['Jet_eta'].compute()) <= 2.3) & (Jet_pt_corr >= 30)
+    Jets_mask = (events['Jet_pt'].compute() >= 26) & (np.abs(events['Jet_eta'].compute()) <= 2.3) & (Jet_pt_corr >= 26)
     if apply_PNET_WP:
         probTauP = events['Jet_PNet_probtauhp'].compute()
         probTauM = events['Jet_PNet_probtauhm'].compute()
@@ -225,7 +225,9 @@ class SingleTauDataset(Dataset):
         GenTaus = get_GenTaus(events)
         Tau_Den = GenTaus[GenTau_mask]
 
-        mask_den_selection = ak.num(Tau_Den['pt']) >=2
+        # previous version was >= 2, changing it to >= 1 to agree with the
+        # save_Event_Nden_eff_SingleTau requirements
+        mask_den_selection = ak.num(Tau_Den['pt']) >= 1
         Tau_Den = Tau_Den[mask_den_selection]
         events = events[mask_den_selection]
 
@@ -248,7 +250,9 @@ class SingleTauDataset(Dataset):
         GenTaus = get_GenTaus(events)
         Tau_Den = GenTaus[GenTau_mask]
 
-        mask_den_selection = ak.num(Tau_Den['pt']) >=2
+        # previous version was >= 2, changing it to >= 1 to agree with the
+        # save_Event_Nden_eff_SingleTau requirements
+        mask_den_selection = ak.num(Tau_Den['pt']) >= 1
         Tau_Den = Tau_Den[mask_den_selection]
         events = events[mask_den_selection]
 

@@ -9,7 +9,7 @@ from HLTClass.SingleTauDataset import evt_sel_LooseDeepTauPFTauHPS180_L2NN_eta2p
 
 class DoubleORSingleTauDataset(Dataset):
     config = load_cfg_file()
-    par_frozen_SingleTau = [float(config['OPT']['PNet_SingleTau_t1']), float(config['OPT']['PNet_SingleTau_t2']), float(config['OPT']['PNet_SingleTau_t3'])]
+    # par_frozen_SingleTau = [float(config['OPT']['PNet_SingleTau_t1']), float(config['OPT']['PNet_SingleTau_t2']), float(config['OPT']['PNet_SingleTau_t3'])]
 
     def __init__(self, fileName):
         Dataset.__init__(self, fileName)
@@ -36,15 +36,15 @@ class DoubleORSingleTauDataset(Dataset):
         return N_den, N_num
 
 
-    def get_Nnum_Nden_DoubleORSinglePNet(self, par):
-        print(f'Computing Rate for DoubleORSingle path with param: {par}')
+    def get_Nnum_Nden_DoubleORSinglePNet(self, par_double, par_single):
+        print(f'Computing Rate for DoubleORSingle path with doubletau param: {par_double} and singletau param: {par_single}')
         #load all events in the file that belong to the run and lumiSections_range, save the number of events in Denominator
         events = self.get_events()
         N_den = len(events)
         print(f"Number of events in denominator: {N_den}")
 
-        SingleTau_evt_mask, SingleTau_matchingTaus_mask = evt_sel_SingleTau(events, self.par_frozen_SingleTau, is_gen = False)
-        DiTau_evt_mask, DiTau_matchingTaus_mask = evt_sel_DiTau(events, par, n_min=2, is_gen = False)
+        SingleTau_evt_mask, SingleTau_matchingTaus_mask = evt_sel_SingleTau(events, par_single, is_gen = False)
+        DiTau_evt_mask, DiTau_matchingTaus_mask = evt_sel_DiTau(events, par_double, n_min=2, is_gen = False)
 
         evt_mask = SingleTau_evt_mask | DiTau_evt_mask
 
@@ -94,7 +94,7 @@ class DoubleORSingleTauDataset(Dataset):
 
         return  
 
-    def produceRoot_DoubleORSinglePNet(self, out_file, par):
+    def produceRoot_DoubleORSinglePNet(self, out_file, par_double, par_single):
         #load all events that pass denominator Selection
         events = self.get_events()
 
@@ -109,8 +109,8 @@ class DoubleORSingleTauDataset(Dataset):
 
         print(f"Number of GenTaus passing denominator selection: {len(ak.flatten(Tau_Den))}")
 
-        SingleTau_evt_mask, SingleTau_matchingGentaus_mask = evt_sel_SingleTau(events, self.par_frozen_SingleTau, is_gen = True)
-        DiTau_evt_mask, DiTau_matchingTaus_mask = evt_sel_DiTau(events, par, n_min=2, is_gen = True)
+        SingleTau_evt_mask, SingleTau_matchingGentaus_mask = evt_sel_SingleTau(events, par_single, is_gen = True)
+        DiTau_evt_mask, DiTau_matchingTaus_mask = evt_sel_DiTau(events, par_double, n_min=2, is_gen = True)
 
         print(f'SingleTau_evt_mask: {np.sum(SingleTau_evt_mask)}')
         print(f'DiTau_evt_mask: {np.sum(DiTau_evt_mask)}')
@@ -131,7 +131,7 @@ class DoubleORSingleTauDataset(Dataset):
 
     # ------------------------------ functions to Compute Efficiency for opt ---------------------------------------------------------------
 
-    def ComputeEffAlgo_DoubleORSinglePNet(self, par):
+    def ComputeEffAlgo_DoubleORSinglePNet(self, par_double, par_single, den_double=False):
 
         #load all events in the file that belong to the run and lumiSections_range, save the number of events in Denominator
         events = self.get_events()
@@ -146,7 +146,7 @@ class DoubleORSingleTauDataset(Dataset):
         # Selection of L1 objects and reco Tau objects + matching
         # For SingleTau
         L1Tau_Tau120er2p1L2NN_mask = L1Tau_Tau120er2p1_selection(events) & L1Tau_L2NN_selection_SingleTau(events)
-        SingleTau_mask = Jet_selection_SingleTau(events, self.par_frozen_SingleTau, apply_PNET_WP = False)
+        SingleTau_mask = Jet_selection_SingleTau(events, par_single, apply_PNET_WP = False)
         # at least 1 L1tau/ recoTau should pass
         SingleTau_evt_mask = (ak.sum(L1Tau_Tau120er2p1L2NN_mask, axis=-1) >= 1) & (ak.sum(SingleTau_mask, axis=-1) >= 1) & (ak.sum(GenTau_mask, axis=-1) >= 1)
 
@@ -159,7 +159,7 @@ class DoubleORSingleTauDataset(Dataset):
         # For DiTau
         L1Tau_IsoTau34er2p1L2NN_mask = L1Tau_IsoTau34er2p1_selection(events) & L1Tau_L2NN_selection_DiTau(events)
         L1Tau_Tau70er2p1L2NN_mask = L1Tau_Tau70er2p1_selection(events) & L1Tau_L2NN_selection_DiTau(events)
-        DiTau_mask = Jet_selection_DiTau(events, par, apply_PNET_WP = False)
+        DiTau_mask = Jet_selection_DiTau(events, par_double, apply_PNET_WP = False)
         # at least n_min L1tau/ recoJet should pass
         DiTau_evt_mask = ((ak.sum(L1Tau_IsoTau34er2p1L2NN_mask, axis=-1) >= 2) | (ak.sum(L1Tau_Tau70er2p1L2NN_mask, axis=-1) >= 2)) & (ak.sum(DiTau_mask, axis=-1) >= 2) & (ak.sum(GenTau_mask, axis=-1) >= 2)
 
@@ -171,15 +171,18 @@ class DoubleORSingleTauDataset(Dataset):
         evt_mask_matching = (ak.sum(matchingGentaus_mask, axis=-1) >= 2)
         DiTau_evt_mask = DiTau_evt_mask & evt_mask_matching
 
-        # Or between the 2 
-        evt_mask = SingleTau_evt_mask | DiTau_evt_mask
+        # Or between the 2
+        if not den_double:
+            evt_mask = SingleTau_evt_mask | DiTau_evt_mask
+        else:
+            evt_mask = DiTau_evt_mask
 
         N_den = len(events[evt_mask])
         print(f"Number of events in denominator: {N_den}")
 
         # Selection of L1 objects and reco Tau objects + matching
         # For SingleTau
-        SingleTau_mask = Jet_selection_SingleTau(events, self.par_frozen_SingleTau, apply_PNET_WP = True)
+        SingleTau_mask = Jet_selection_SingleTau(events, par_single, apply_PNET_WP = True)
         # at least 1 L1tau/ recoTau should pass
         SingleTau_evt_mask = (ak.sum(L1Tau_Tau120er2p1L2NN_mask, axis=-1) >= 1) & (ak.sum(SingleTau_mask, axis=-1) >= 1) & (ak.sum(GenTau_mask, axis=-1) >= 1)
 
@@ -189,7 +192,7 @@ class DoubleORSingleTauDataset(Dataset):
         SingleTau_evt_mask = SingleTau_evt_mask & evt_mask_matching
 
         # For DiTau
-        DiTau_mask = Jet_selection_DiTau(events, par, apply_PNET_WP = True)
+        DiTau_mask = Jet_selection_DiTau(events, par_double, apply_PNET_WP = True)
         # at least 1 L1tau/ Jet/ GenTau should pass
         DiTau_evt_mask = ((ak.sum(L1Tau_IsoTau34er2p1L2NN_mask, axis=-1) >= 2) | (ak.sum(L1Tau_Tau70er2p1L2NN_mask, axis=-1) >= 2)) & (ak.sum(DiTau_mask, axis=-1) >= 2) & (ak.sum(GenTau_mask, axis=-1) >= 2)
 
@@ -200,8 +203,8 @@ class DoubleORSingleTauDataset(Dataset):
         DiTau_evt_mask = DiTau_evt_mask & evt_mask_matching
 
         # Or between the 2 
-        evt_mask = SingleTau_evt_mask | DiTau_evt_mask
-        
+        evt_mask = evt_mask & (SingleTau_evt_mask | DiTau_evt_mask)
+
         N_num = len(events[evt_mask])
         print(f"Number of events in numerator: {N_num}")
         print('')
