@@ -60,7 +60,11 @@ class SaveOptimisationResults(Task, HTCondorWorkflow, law.LocalWorkflow):
         # max_param = 1.
 
         step = 0.01
+<<<<<<< HEAD
         pt_cuts = [26, 27, 28]
+=======
+        pt_cuts = [26]
+>>>>>>> ece4ae826ccd456431518df7ea52bb6d38591823
         # pt_cuts = [26, 27, 28, 29, 30]
         index = 0
         for pt in pt_cuts:
@@ -81,17 +85,29 @@ class SaveOptimisationResults(Task, HTCondorWorkflow, law.LocalWorkflow):
         return law.LocalFileTarget(path)
 
     def run(self):
+<<<<<<< HEAD
         HLT_name = "HLT_DoubleMediumDeepTauPFTauHPS30_L2NN_eta2p1_PFJet60"
         L1A_physics = float(self.config['RUNINFO']['L1A_physics'])
 
         RefRun = list(filter(None, (x.strip() for x in self.config['RUNINFO']['ref_run'].splitlines())))
         tag = f'Run_{RefRun[0]}' if len(RefRun) == 1 else f'Run_{"_".join(RefRun)}'
         Rate_path = os.path.join(self.config['DATA']['RateDenPath'], tag)
+=======
+        RefRun = int(self.config['RUNINFO']['ref_run'])
+        HLT_name = self.config['HLT']['HLTname']
+        L1A_physics = float(self.config['RUNINFO']['L1A_physics'])
+
+        Rate_path = os.path.join(self.config['DATA']['RateDenPath'], f'Run_{RefRun}')
+>>>>>>> ece4ae826ccd456431518df7ea52bb6d38591823
         Eff_path = os.path.join(self.config['DATA']['EffDenPath'], HLT_name)
 
         # FileNameList_eff = f"/eos/user/j/jleonhol/www/PNetAtHLT/data/EfficiencyDen/{HLT_name}/ZprimeToTauTau_M-4000.root" 
         FileNameList_eff = [
+<<<<<<< HEAD
             f"/eos/user/j/jleonhol/www/PNetAtHLT/2024_v1/data/EfficiencyDen/{HLT_name}/VBFHToTauTau_M125.root"
+=======
+            "/eos/home-j/jleonhol/www/PNetAtHLT/data/EfficiencyDen/HLT_DoubleMediumDeepTauPFTauHPS30_L2NN_eta2p1_PFJet60/GluGluHToTauTau_M-125.root",
+>>>>>>> ece4ae826ccd456431518df7ea52bb6d38591823
             # "/eos/home-j/jleonhol/www/PNetAtHLT/data/EfficiencyDen/HLT_DoubleMediumDeepTauPFTauHPS30_L2NN_eta2p1_PFJet60/GluGlutoHHto2B2Tau_kl-1p00_kt-1p00_c2-0p00.root",
             # "/eos/home-j/jleonhol/www/PNetAtHLT/data/EfficiencyDen/HLT_DoubleMediumDeepTauPFTauHPS30_L2NN_eta2p1_PFJet60/VBFHHto2B2Tau_CV-1_C2V-1_C3-1.root",
             # "/eos/home-j/jleonhol/www/PNetAtHLT/data/EfficiencyDen/HLT_DoubleMediumDeepTauPFTauHPS30_L2NN_eta2p1_PFJet60/VBFHToTauTau_M125.root",
@@ -131,15 +147,25 @@ class SaveOptimisationResultsDiTau(SaveOptimisationResults):
 
     config = load_cfg_file()
     output_path = config['DATA']['result_opt_ditau']
+<<<<<<< HEAD
     add_deeptau = True
+=======
+>>>>>>> ece4ae826ccd456431518df7ea52bb6d38591823
 
     def create_branch_map(self):
         branches = {}
         os.makedirs(self.output_path, exist_ok=True)
 
+<<<<<<< HEAD
         param_ranges = [
             (0.4, 0.65),
             (0.4, 0.55)
+=======
+
+        param_ranges = [
+            (0.3, 0.6),
+            (0.3, 0.5)
+>>>>>>> ece4ae826ccd456431518df7ea52bb6d38591823
         ]
 
         # min_param_1 = 0.2
@@ -159,12 +185,17 @@ class SaveOptimisationResultsDiTau(SaveOptimisationResults):
                 branches[index] = (param[0], param[1])
                 index += 1
 
+<<<<<<< HEAD
         if self.add_deeptau:
             branches[index] = ("deeptau", )
+=======
+        branches[index] = ("deeptau", )
+>>>>>>> ece4ae826ccd456431518df7ea52bb6d38591823
 
         return branches
 
     def run(self):
+<<<<<<< HEAD
         config = load_cfg_file()
         HLT_name = "HLT_DoubleMediumDeepTauPFTauHPS35_L2NN_eta2p1"
         L1A_physics = float(self.config['RUNINFO']['L1A_physics'])
@@ -172,6 +203,13 @@ class SaveOptimisationResultsDiTau(SaveOptimisationResults):
         RefRun = list(filter(None, (x.strip() for x in self.config['RUNINFO']['ref_run'].splitlines())))
         tag = f'Run_{RefRun[0]}' if len(RefRun) == 1 else f'Run_{"_".join(RefRun)}'
         Rate_path = os.path.join(self.config['DATA']['RateDenPath'], tag)
+=======
+        RefRun = int(self.config['RUNINFO']['ref_run'])
+        HLT_name = self.config['HLT']['HLTname']
+        L1A_physics = float(self.config['RUNINFO']['L1A_physics'])
+
+        Rate_path = os.path.join(self.config['DATA']['RateDenPath'], f'Run_{RefRun}')
+>>>>>>> ece4ae826ccd456431518df7ea52bb6d38591823
         Eff_path = os.path.join(self.config['DATA']['EffDenPath'], HLT_name)
 
         # FileNameList_eff = f"/eos/user/j/jleonhol/www/PNetAtHLT/data/EfficiencyDen/{HLT_name}/ZprimeToTauTau_M-4000.root" 
@@ -206,6 +244,7 @@ class SaveOptimisationResultsDiTau(SaveOptimisationResults):
 
         with open(self.output().path, "w+") as out:
             json.dump(d, out)
+<<<<<<< HEAD
 
 
 class SaveOptimisationResultsDiTauSingleTau(SaveOptimisationResultsDiTau):
@@ -301,3 +340,5 @@ class SaveOptimisationResultsDiTauSingleTauDenDouble(SaveOptimisationResultsDiTa
     add_deeptau = False
     par_double = [0.57, 0.44, 0]
     den_double = True
+=======
+>>>>>>> ece4ae826ccd456431518df7ea52bb6d38591823
